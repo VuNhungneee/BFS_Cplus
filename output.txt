@@ -1,12 +1,14 @@
-=== Bang thuc hien ===
-Xet || Trang thai ke tiep || Danh sach cac dinh da xet || Danh sach can xet
----------------------------------------------------------------
-A || B C D || A B C D || B C D 
-B || I G || I A B C D G || C D I G 
-C || E F || I A B C D G E F || D I G E F 
-D || || I A B C D G E F || I G E F 
-I || || I A B C D G E F || G E F 
-G || || I A B C D G E F || E F 
+Xet  | Trang thai ke tiep | Danh sach cac dinh da xet  | Danh sach can xet        
+-------------------------------------------------------------------------
+A    | B C D              | A B C D                    | B C D                    
+B    | I G                | I A B C D G                | C D I G                  
+C    | E F                | I A B C D G E F            | D I G E F                
+D    |                    | I A B C D G E F            | I G E F                  
+I    |                    | I A B C D G E F            | G E F                    
+G    |                    | I A B C D G E F            | E F                      
 
-=== ?uong ?i ngan nhat ===
+=== BFS Path ===
 A => B => G
+
+=== DFS Path ===
+A => B => I => G

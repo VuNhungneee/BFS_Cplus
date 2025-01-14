@@ -1,3 +1,5 @@
+Start:A
+End:G
 A B C D
 B I G
 C E F
