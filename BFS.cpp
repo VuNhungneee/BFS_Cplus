@@ -13,7 +13,7 @@ using namespace std;
 void readGraphAndEndpoints(const string& filename, unordered_map<string, vector<string>>& graph, string& start, string& end) {
     ifstream inputFile(filename);
     if (!inputFile) {
-        cerr << "Không thể mở tệp: " << filename << endl;
+        cerr << "Cann't open file: " << filename << endl;
         exit(1);
     }
 
@@ -34,7 +34,6 @@ void readGraphAndEndpoints(const string& filename, unordered_map<string, vector<
             }
         }
     }
-
     inputFile.close();
 }
 
@@ -55,6 +54,7 @@ void calculateColumnWidths(const vector<string>& table, vector<size_t>& columnWi
     }
 }
 
+// Định dạng một dòng trong bảng
 string formatRow(const string& node, const vector<string>& nextStates, const unordered_set<string>& visited, const vector<string>& toVisit) {
     stringstream ss;
     vector<size_t> columnWidths = { 4, 19, 27, 25 }; // Thêm cột cho danh sách cần xét
@@ -87,7 +87,7 @@ string formatRow(const string& node, const vector<string>& nextStates, const uno
 }
 
 // Hàm BFS để tìm đường đi ngắn nhất
-vector<string> BFS(unordered_map<string, vector<string>>& graph, const string& start, const string& end,vector<string>& steps, vector<string>& table) {
+vector<string> BFS(unordered_map<string, vector<string>>& graph, const string& start, const string& end, vector<string>& steps, vector<string>& table) {
     queue<vector<string>> q; // Hàng đợi lưu đường đi
     unordered_set<string> visited; // Tập các điểm đã thăm
     queue<string> toVisitQueue; // Hàng đợi cho danh sách cần xét
@@ -98,7 +98,6 @@ vector<string> BFS(unordered_map<string, vector<string>>& graph, const string& s
     toVisitQueue.push(start); // Thêm node bắt đầu vào danh sách cần xét
 
     while (!q.empty()) {
-        // Lấy phần tử đầu của hàng đợi
         vector<string> path = q.front();
         q.pop();
 
@@ -106,7 +105,7 @@ vector<string> BFS(unordered_map<string, vector<string>>& graph, const string& s
         lastNodes.insert(lastNode); // Thêm lastNode vào tập hợp
 
         // Tạo trạng thái cho bảng
-        vector<string> nextStates; // Các đỉnh liền kề sẽ được thêm vào hàng đợi
+        vector<string> nextStates;
         for (const string& next : graph[lastNode]) {
             if (visited.find(next) == visited.end()) {
                 nextStates.push_back(next);
@@ -118,50 +117,48 @@ vector<string> BFS(unordered_map<string, vector<string>>& graph, const string& s
                 q.push(newPath);
             }
         }
-
         // Cập nhật danh sách các node cần xét
         vector<string> toVisit;
-        queue<string> tempQueue = toVisitQueue; // Tạo bản sao của hàng đợi
+        queue<string> tempQueue = toVisitQueue;
         while (!tempQueue.empty()) {
             string node = tempQueue.front();
-            tempQueue.pop(); // Lấy ra từ đầu hàng đợi
-            // Chỉ thêm các node khác với tất cả lastNode đã xét vào danh sách toVisit
+            tempQueue.pop();
             if (lastNodes.find(node) == lastNodes.end()) {
                 toVisit.push_back(node);
             }
         }
-
         // Thêm thông tin vào bảng
         table.push_back(formatRow(lastNode, nextStates, visited, toVisit));
 
         if (lastNode == end) return path;
     }
-
     return {};
 }
+// Hàm in bảng vào tệp
+void printTableToFile(ofstream& outputFile, const vector<string>& table, const vector<size_t>& columnWidths) {
+    outputFile << left << setw(columnWidths[0]) << "Xet"
+        << " | " << setw(columnWidths[1]) << "Trang thai ke tiep"
+        << " | " << setw(columnWidths[2]) << "Danh sach cac dinh da xet"
+        << " | " << setw(columnWidths[3]) << "Danh sach can xet" << endl;
+    outputFile << string(columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3], '-') << endl;
 
-// DFS để tìm đường đi (đệ quy)
-bool DFSHelper(unordered_map<string, vector<string>>& graph, const string& current, const string& end, unordered_set<string>& visited, vector<string>& path) {
-    path.push_back(current);
-    if (current == end) return true;
-
-    visited.insert(current);
-
-    for (const string& neighbor : graph[current]) {
-        if (visited.find(neighbor) == visited.end()) {
-            if (DFSHelper(graph, neighbor, end, visited, path)) return true;
-        }
+    for (const string& row : table) {
+        outputFile << row << endl;
     }
-
-    path.pop_back();
-    return false;
 }
-
-vector<string> DFS(unordered_map<string, vector<string>>& graph, const string& start, const string& end) {
-    unordered_set<string> visited;
-    vector<string> path;
-    if (DFSHelper(graph, start, end, visited, path)) return path;
-    return {};
+// Hàm in đường đi vào tệp
+void printPathToFile(ofstream& outputFile, const vector<string>& path, const string& label) {
+    outputFile << "\n=== " << label << " Path ===\n";
+    if (!path.empty()) {
+        for (size_t i = 0; i < path.size(); ++i) {
+            outputFile << path[i];
+            if (i != path.size() - 1) outputFile << " => ";
+        }
+        outputFile << endl;
+    }
+    else {
+        outputFile << "No path found." << endl;
+    }
 }
 
 int main() {
@@ -174,10 +171,8 @@ int main() {
 
     vector<string> steps;  // Lưu lại các bước thực hiện
     vector<string> table;
-    vector<string> bfsPath = BFS(graph, start, end,steps, table);
-    vector<string> dfsPath = DFS(graph, start, end);
+    vector<string> bfsPath = BFS(graph, start, end, steps, table);
 
-    // Tính toán độ rộng cột
     vector<size_t> columnWidths = { 4, 18, 26, 25 };
     calculateColumnWidths(table, columnWidths);
 
@@ -187,47 +182,11 @@ int main() {
         return 1;
     }
 
-    // In tiêu đề
-    outputFile << left << setw(columnWidths[0]) << "Xet"
-        << " | " << setw(columnWidths[1]) << "Trang thai ke tiep"
-        << " | " << setw(columnWidths[2]) << "Danh sach cac dinh da xet" 
-        << " | " << setw(columnWidths[3]) << "Danh sach can xet" << endl;
-    outputFile << string(columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3], '-') << endl;
-
-    // In các dòng
-    for (const string& row : table) {
-        outputFile << row << endl;
-    }
-
-    // In đường đi BFS
-    outputFile << "\n=== BFS Path ===\n";
-    if (!bfsPath.empty()) {
-        for (size_t i = 0; i < bfsPath.size(); ++i) {
-            outputFile << bfsPath[i];
-            if (i != bfsPath.size() - 1) outputFile << " => ";
-        }
-        outputFile << endl;
-    }
-    else {
-        outputFile << "No path found." << endl;
-    }
-
-    // In đường đi DFS
-    outputFile << "\n=== DFS Path ===\n";
-    if (!dfsPath.empty()) {
-        for (size_t i = 0; i < dfsPath.size(); ++i) {
-            outputFile << dfsPath[i];
-            if (i != dfsPath.size() - 1) outputFile << " => ";
-        }
-        outputFile << endl;
-    }
-    else {
-        outputFile << "No path found." << endl;
-    }
+    printTableToFile(outputFile, table, columnWidths);
+    printPathToFile(outputFile, bfsPath, "BFS");
 
     outputFile.close();
     cout << "Ket qua da duoc ghi vao tep: " << outputFilename << endl;
 
     return 0;
 }
-

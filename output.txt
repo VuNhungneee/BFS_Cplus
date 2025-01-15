@@ -9,6 +9,3 @@ G    |                    | I A B C D G E F            | E F
 
 === BFS Path ===
 A => B => G
-
-=== DFS Path ===
-A => B => I => G
